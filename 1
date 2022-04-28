@@ -1,0 +1,42 @@
+set-adserversettings -viewentireforest $true
+$groups = Get-Content -path C:\Users\xxx\importfile.csv 
+ 
+ 
+$result = @()
+ 
+ 
+foreach ($group in $groups)
+{
+    $usernames = @()
+    $members = Get-DistributionGroupMember $group -ResultSize unlimited 
+    $outputObject = New-Object PSObject
+    $outputObject | Add-Member NoteProperty -Name "Groupname" -Value $group
+ 
+ 
+ 
+ 
+    foreach ($user in $members)
+    {
+        if ($user.RecipientType -match "user" -or $user.RecipientType -match "mailcontact" ) 
+        {
+            $usernames += $user.name
+        }
+        elseif ($user.RecipientType -match "group")
+        {
+            $groupname = $user.Name
+            $info = get-adgroup -Filter "name -eq '$groupname'" -SearchBase "" -Server cad.local:3268
+            $domain = ($info.DistinguishedName -split ',DC=')[1]
+            $usernames += (Get-ADGroupMember $user.name -Recursive -Server $domain).name | where {$_ -ne $null}
+        }
+ 
+ 
+ 
+    }
+ 
+ 
+ 
+    $outputObject | Add-Member NoteProperty -Name "Name" -Value $usernames
+    if ($outputObject) {$result += $outputObject}
+}
+ 
+$result | Out-File 'C:\Users\xxx\outputfile.csv'
