@@ -1,3 +1,7 @@
+#If user is a member of a group: iterates through that group as well as any nested groups (assuming the group is a parent group),
+and lists out all related members and their groups as well as the parent group 
+
+
 set-adserversettings -viewentireforest $true
 $groups = Get-Content -path C:\Users\xxx\importfile.csv 
  
